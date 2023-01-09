@@ -1,0 +1,128 @@
+version: 2
+
+models:
+
+  - name: stg_timestamps
+    description: Original record timestamp and Airbyte Sync timestamp per record
+    columns:
+      - name: record_timestamp
+        description: The original record creation timestamp
+        tests:
+          - not_null
+      - name: airbyte_sync_timestamp
+        tests:
+          - not_null
+        description: The timestamp at which the record was synced by airbyte
+
+  - name: stg_sync_difference
+    description: Delay in record entry to sync
+    columns:
+      - name: difference
+        description: The delay in sync
+        tests:
+          - not_null
+      - name: record_timestamp
+        description: The original record creation timestamp
+        tests:
+          - not_null
+
+  - name: stg_max_entry_per_transaction
+    description: Max entry per each creation transaction
+    columns:
+      - name: max_entry_id
+        description: Max entry id per timestamp
+        tests:
+          - not_null
+          - unique
+      - name: created_on
+        description: The timestamp of creation for this entry
+        tests:
+          - not_null
+
+  - name: max_entry
+    description: Max entry id from all transactions
+    columns:
+      - name: max_entry
+        description: Max entry id
+        tests:
+          - not_null
+          - unique
+      - name: created_on
+        description: The timestamp at which this record was added into random data
+      - name: normalized_timestamp
+        description: The timestamp at which airbyte normalized this record
+      - name: delay
+        description: The difference between these timestamps
+
+  - name: max_sync_delay
+    description: Max sync delay
+    columns:
+      - name: max_difference
+        description: Max difference in timestamp
+        tests:
+          - unique
+          - not_null
+
+  - name: max_delay_with_entry_id
+    description: Max delay with its entry id
+    columns:
+      - name: max_ids
+        description: ID having max difference
+        tests:
+          - not_null
+      - name: difference
+        description: Max difference value
+        tests:
+          - not_null
+
+sources:
+  - name: public
+    description: This contains the data from the airbyte sync
+    tables:
+      - name: airbyterandomdata
+        description: The synced normalized data from random data table by airbyte
+        columns:
+          - name: name
+            description: The name record from random data
+            tests:
+              - not_null
+          - name: entry_id
+            description: The unique id for each of the records
+            tests:
+              - unique
+              - not_null
+          - name: created_on
+            description: The timestamp at which this record was added into random data
+            tests:
+              - not_null
+          - name: _airbyte_ab_id
+            description: the primary key of the denormalized sync record created by airbyte
+            tests:
+              - not_null
+          - name: _airbyte_emitted_at
+            description: The timestamp at which airbyte synced this record
+            tests:
+              - not_null
+          - name: _airbyte_normalized_at
+            description: The timestamp at which airbyte normalized this record
+            tests:
+              - not_null
+          - name: _airbyte_airbyterandomdata_hashid
+            description: The hash id for this record created by airbyte
+            tests:
+              - not_null
+      - name: _airbyte_raw_airbyterandomdata
+        description: The temp raw data created by airbyte
+        columns:
+          - name: _airbyte_ab_id
+            description: the primary key of the denormalized sync record created by airbyte
+            tests:
+              - not_null
+          - name: _airbyte_data
+            description: The raw record data as a json
+            tests:
+              - not_null
+          - name: _airbyte_emitted_at
+            description: The timestamp at which airbyte synced this record
+            tests:
+              - not_null
